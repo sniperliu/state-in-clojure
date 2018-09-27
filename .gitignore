@@ -1,0 +1,10 @@
+.\#*
+*.nrepl*
+.cpcache/
+
+/.idea
+/target
+/.lein-failures
+/project.clj
+.rebel*
+*~
