@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>State in Clojure</title>
+<meta name="author" content="(Hao Liu)"/>
+<style type="text/css">
+.underline { text-decoration: underline; }
+</style>
+<link rel="stylesheet" href="http://cdn.jsdelivr.net/reveal.js/3.0.0/css/reveal.css"/>
+
+<link rel="stylesheet" href="http://cdn.jsdelivr.net/reveal.js/3.0.0/css/theme/black.css" id="theme"/>
+
+
+<!-- If the query includes 'print-pdf', include the PDF print sheet -->
+<script>
+    if( window.location.search.match( /print-pdf/gi ) ) {
+        var link = document.createElement( 'link' );
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = 'http://cdn.jsdelivr.net/reveal.js/3.0.0/css/print/pdf.css';
+        document.getElementsByTagName( 'head' )[0].appendChild( link );
+    }
+</script>
+<meta name="description" content="State in Clojure">
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+<section id="sec-title-slide"><h1 class="title">State in Clojure</h1><h2 class="author">Hao Liu</h2><p class="date">Created: 2018-09-27 Thu 14:45</p>
+</section>
+<section id="table-of-contents">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#/slide-orgc956c82">State</a></li>
+<li><a href="#/slide-org2bcebda">Manipulate State</a></li>
+<li><a href="#/slide-org94d8189">State in Clojure</a></li>
+<li><a href="#/slide-org33772ec">Reference</a></li>
+</ul>
+</div>
+</div>
+</section>
+
+<section>
+<section id="slide-orgc956c82">
+<h2 id="orgc956c82">State</h2>
+
+<div class="figure">
+<p><img src="./images/weather.gif" alt="weather.gif" />
+</p>
+</div>
+
+</section>
+</section>
+<section>
+<section id="slide-org2bcebda">
+<h2 id="org2bcebda">Manipulate State</h2>
+<div class="outline-text-2" id="text-org2bcebda">
+</div>
+</section>
+</section>
+<section>
+<section id="slide-org6ae1de8">
+<h3 id="org6ae1de8">Imperative Programming Language</h3>
+<ul>
+<li>Mutable</li>
+<li>Statement</li>
+
+</ul>
+<div class="org-src-container">
+
+<pre  class="fragment appear"><span style="color: #b58900;">int</span> <span style="color: #268bd2;">age</span> = 0;
+
+age = age + 1;
+</pre>
+</div>
+</section>
+</section>
+<section>
+<section id="slide-orgaf3c09b">
+<h3 id="orgaf3c09b">Funtional Programming Language</h3>
+<ul>
+<li>Immutable</li>
+<li>Expression</li>
+
+</ul>
+</section>
+<section id="slide-org68ffe81">
+<h4 id="org68ffe81">Compromise</h4>
+<div class="org-src-container">
+
+<pre  class="fragment appear"><span style="color: #859900; font-weight: bold;">var</span> <span style="color: #cb4b16; font-weight: bold;">age</span> <span style="color: #859900; font-weight: bold;">=</span> <span style="color: #268bd2; font-weight: bold;">10</span>
+
+age <span style="color: #859900; font-weight: bold;">=</span> age + <span style="color: #268bd2; font-weight: bold;">1</span>
+</pre>
+</div>
+</section>
+<section id="slide-org280ff96">
+<h4 id="org280ff96">Message Passing and Actors</h4>
+<div class="org-src-container">
+
+<pre  class="fragment appear"><span style="color: #859900; font-weight: bold;">class</span> <span style="color: #b58900;">SomeActor</span> <span style="color: #859900; font-weight: bold;">extends</span> <span style="color: #b58900;">Actor</span> {
+
+  <span style="color: #839496; font-weight: bold;">override</span> <span style="color: #859900; font-weight: bold;">def</span> <span style="color: #268bd2;">receive</span><span style="color: #859900; font-weight: bold;">:</span> <span style="color: #b58900;">Receive</span> <span style="color: #859900; font-weight: bold;">=</span> {
+    <span style="color: #859900; font-weight: bold;">case</span> <span style="color: #2aa198;">"stop"</span> <span style="color: #859900; font-weight: bold;">&#8658;</span> context.stop(self)
+  }
+}
+
+<span style="color: #859900; font-weight: bold;">val</span> <span style="color: #268bd2;">first</span> <span style="color: #859900; font-weight: bold;">=</span> system.actorOf(<span style="color: #268bd2; font-weight: bold;">Props</span>[<span style="color: #268bd2; font-weight: bold;">SomeActor</span>], <span style="color: #2aa198;">"first"</span>)
+first ! <span style="color: #2aa198;">"stop"</span>
+</pre>
+</div>
+</section>
+<section id="slide-org094dc10">
+<h4 id="org094dc10">Monad</h4>
+<div class="org-src-container">
+
+<pre  class="fragment appear">
+<span style="color: #586e75;">-- </span><span style="color: #586e75;">state :: (s -&gt; (a, s)) -&gt; m a</span>
+
+<span style="color: #859900; font-weight: bold;">type</span> <span style="color: #b58900;">GameState</span> <span style="color: #268bd2;">=</span> (<span style="color: #b58900;">Bool</span>, <span style="color: #b58900;">Int</span>)
+
+<span style="color: #268bd2;">play</span> <span style="color: #268bd2;">::</span> <span style="color: #b58900;">Command</span> <span style="color: #268bd2;">-&gt;</span> <span style="color: #b58900;">State</span> <span style="color: #b58900;">GameState</span> <span style="color: #b58900;">GameState</span>
+<span style="color: #268bd2;">play</span> <span style="color: #268bd2;">=</span> <span style="color: #859900; font-weight: bold;">do</span> s0 <span style="color: #268bd2;">&lt;-</span> get
+          return s1
+
+<span style="color: #268bd2;">runState</span> (play command) initState
+</pre>
+</div>
+</section>
+<section id="slide-orgc13cf33">
+<h4 id="orgc13cf33">Reference</h4>
+<div class="org-src-container">
+
+<pre  class="fragment appear"><span style="color: #268bd2;">main</span> <span style="color: #268bd2;">=</span> <span style="color: #859900; font-weight: bold;">do</span>
+ result <span style="color: #268bd2;">&lt;-</span> newEmptyMVar
+
+ forkIO (<span style="color: #859900; font-weight: bold;">do</span>
+     <span style="color: #268bd2;">...</span>
+     putMVar result 42)
+</pre>
+</div>
+</section>
+</section>
+<section>
+<section id="slide-org94d8189">
+<h2 id="org94d8189">State in Clojure</h2>
+<p>
+&ldquo;Clojure is a practical language that recognizes the occasional need to maintain a persistent reference to a changing value and provides 4 distinct mechanisms for doing so in a controlled manner.&rdquo; - clojure.org
+</p>
+</section>
+</section>
+<section>
+<section id="slide-org38cbc53">
+<h3 id="org38cbc53">Identity and State</h3>
+<p>
+a stable logical entity associated with a series of different values over time
+a value is something that doesn’t change
+</p>
+</section>
+</section>
+<section>
+<section id="slide-orgcb89b68">
+<h3 id="orgcb89b68">Var</h3>
+<p>
+Vars provide a mechanism to refer to a mutable storage location that can be dynamically rebound (to a new storage location) on a per-thread basis.
+</p>
+<div class="org-src-container">
+
+<pre  class="fragment appear"><span style="color: #2aa198;">(</span><span style="color: #859900; font-weight: bold;">def</span> ^<span style="color: #268bd2; font-weight: bold;">:dynamic</span> <span style="color: #268bd2;">*v-per-thread*</span> 10<span style="color: #2aa198;">)</span>
+
+<span style="color: #2aa198;">(</span><span style="color: #859900; font-weight: bold;">binding</span> <span style="color: #b58900;">[</span><span style="color: #268bd2;">*v-per-thread*</span> 20<span style="color: #b58900;">]</span>
+  <span style="color: #b58900;">(</span>println <span style="color: #268bd2;">*v-per-thread*</span><span style="color: #b58900;">)</span><span style="color: #2aa198;">)</span>
+</pre>
+</div>
+</section>
+</section>
+<section>
+<section id="slide-org66d4466">
+<h3 id="org66d4466">Atom</h3>
+<p>
+Atoms provide a way to manage shared, synchronous, independent state.
+</p>
+<div class="org-src-container">
+
+<pre  class="fragment appear"><span style="color: #2aa198;">(</span><span style="color: #859900; font-weight: bold;">def</span> <span style="color: #268bd2;">db</span> <span style="color: #b58900;">(</span>atom <span style="color: #268bd2;">{</span><span style="color: #268bd2;">}</span><span style="color: #b58900;">)</span>
+
+<span style="color: #b58900;">(</span>swap! db assoc <span style="color: #268bd2; font-weight: bold;">:status</span> <span style="color: #268bd2; font-weight: bold;">:succeed</span><span style="color: #b58900;">)</span>
+</pre>
+</div>
+</section>
+</section>
+<section>
+<section id="slide-orgd428883">
+<h3 id="orgd428883">Ref</h3>
+<p>
+Transactional references (Refs) ensure safe shared use of mutable storage locations via a software transactional memory (STM) system.
+</p>
+<div class="org-src-container">
+
+<pre  class="fragment appear"><span style="color: #2aa198;">(</span><span style="color: #859900; font-weight: bold;">def</span> <span style="color: #268bd2;">balance-a</span> <span style="color: #b58900;">(</span>ref 1000<span style="color: #b58900;">)</span><span style="color: #2aa198;">)</span>
+<span style="color: #2aa198;">(</span><span style="color: #859900; font-weight: bold;">def</span> <span style="color: #268bd2;">balance-b</span> <span style="color: #b58900;">(</span>ref 400<span style="color: #b58900;">)</span><span style="color: #2aa198;">)</span>
+
+<span style="color: #2aa198;">(</span><span style="color: #859900; font-weight: bold;">defn</span> <span style="color: #268bd2;">transit</span>
+  <span style="color: #b58900;">[</span>balance1 balance2 amount<span style="color: #b58900;">]</span>
+  <span style="color: #b58900;">(</span><span style="color: #859900; font-weight: bold;">dosync</span>
+    <span style="color: #268bd2;">(</span>alter balance1 - amount<span style="color: #268bd2;">)</span>
+    <span style="color: #268bd2;">(</span>alter balance2 + amount<span style="color: #268bd2;">)</span><span style="color: #b58900;">)</span><span style="color: #2aa198;">)</span>
+</pre>
+</div>
+</section>
+</section>
+<section>
+<section id="slide-org14f3318">
+<h3 id="org14f3318">Agent</h3>
+<p>
+Agents provide independent, asynchronous change of individual locations.
+</p>
+<div class="org-src-container">
+
+<pre  class="fragment appear"><span style="color: #2aa198;">(</span><span style="color: #859900; font-weight: bold;">def</span> <span style="color: #268bd2;">count</span> <span style="color: #b58900;">(</span>agent 0<span style="color: #b58900;">)</span><span style="color: #2aa198;">)</span>
+
+<span style="color: #2aa198;">(</span>send count inc<span style="color: #2aa198;">)</span>
+</pre>
+</div>
+</section>
+</section>
+<section>
+<section id="slide-org3e35b46">
+<h3 id="org3e35b46">Misc</h3>
+<ol>
+<li>Validator</li>
+<li>Reactive</li>
+
+</ol>
+</section>
+</section>
+<section>
+<section id="slide-orga1240e2">
+<h3 id="orga1240e2">Comparison</h3>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Name</th>
+<th scope="col" class="org-left">Execution</th>
+<th scope="col" class="org-left">Coordination</th>
+<th scope="col" class="org-left">Locations</th>
+<th scope="col" class="org-left">Retry</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">Ref</td>
+<td class="org-left">synchronous</td>
+<td class="org-left">coordinated</td>
+<td class="org-left">multiple</td>
+<td class="org-left">false</td>
+</tr>
+
+<tr>
+<td class="org-left">Agent</td>
+<td class="org-left">asynchronous</td>
+<td class="org-left">independent</td>
+<td class="org-left">individual</td>
+<td class="org-left">true</td>
+</tr>
+
+<tr>
+<td class="org-left">Atom</td>
+<td class="org-left">synchronous</td>
+<td class="org-left">independent</td>
+<td class="org-left">individual</td>
+<td class="org-left">true</td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section>
+<section id="slide-org33772ec">
+<h2 id="org33772ec">Reference</h2>
+<p>
+<a href="https://clojure.org">clojure.org</a>
+</p>
+</section>
+</section>
+</div>
+</div>
+<p> Created by sniperliu. </p>
+<script src="http://cdn.jsdelivr.net/reveal.js/3.0.0/lib/js/head.min.js"></script>
+<script src="http://cdn.jsdelivr.net/reveal.js/3.0.0/js/reveal.js"></script>
+
+<script>
+// Full list of configuration options available here:
+// https://github.com/hakimel/reveal.js#configuration
+Reveal.initialize({
+
+controls: true,
+progress: true,
+history: false,
+center: true,
+slideNumber: 'c',
+rollingLinks: true,
+keyboard: true,
+overview: true,
+width: 1200,
+height: 800,
+margin: 0.10,
+minScale: 0.50,
+maxScale: 2.50,
+
+theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+transition: Reveal.getQueryHash().transition || 'cube', // default/cube/page/concave/zoom/linear/fade/none
+transitionSpeed: 'default',
+multiplex: {
+    secret: '', // null if client
+    id: '', // id, obtained from socket.io server
+    url: '' // Location of socket.io server
+},
+
+// Optional libraries used to extend on reveal.js
+dependencies: [
+ { src: 'http://cdn.jsdelivr.net/reveal.js/3.0.0/plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+ { src: 'http://cdn.jsdelivr.net/reveal.js/3.0.0/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+ { src: 'http://cdn.jsdelivr.net/reveal.js/3.0.0/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }]
+});
+</script>
+</body>
+</html>

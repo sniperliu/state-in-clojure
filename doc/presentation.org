@@ -1,0 +1,133 @@
+#+Title: State in Clojure
+#+Author: Hao Liu
+#+Email: sniperliuhao@gmail.com
+
+#+OPTIONS: reveal_center:t reveal_progress:t reveal_history:nil reveal_control:t reveal_frag:t
+#+OPTIONS: reveal_rolling_links:t reveal_keyboard:t reveal_overview:t num:nil
+#+OPTIONS: reveal_width:1200 reveal_height:800
+#+OPTIONS: toc:1
+#+REVEAL_ROOT: http://cdn.jsdelivr.net/reveal.js/3.0.0/
+#+REVEAL_MARGIN: 0.1
+#+REVEAL_MIN_SCALE: 0.5
+#+REVEAL_MAX_SCALE: 2.5
+#+REVEAL_TRANS: cube
+#+REVEAL_THEME: black
+#+REVEAL_HLEVEL: 2
+#+REVEAL_HEAD_PREAMBLE: <meta name="description" content="State in Clojure">
+#+REVEAL_POSTAMBLE: <p> Created by sniperliu. </p>
+#+REVEAL_PLUGINS: (markdown notes)
+
+* State
+[[./images/weather.gif]]
+
+* Manipulate State
+** Imperative Programming Language
+  - Mutable
+  - Statement
+  #+ATTR_REVEAL: :frag appear
+  #+BEGIN_SRC c
+  int age = 0;
+
+  age = age + 1;
+  #+END_SRC
+** Funtional Programming Language
+  - Immutable
+  - Expression
+*** Compromise
+   #+ATTR_REVEAL: :frag appear
+   #+BEGIN_SRC scala
+   var age = 10
+
+   age = age + 1
+   #+END_SRC
+*** Message Passing and Actors
+   #+ATTR_REVEAL: :frag appear
+   #+BEGIN_SRC scala
+   class SomeActor extends Actor {
+
+     override def receive: Receive = {
+       case "stop" ⇒ context.stop(self)
+     }
+   }
+
+   val first = system.actorOf(Props[SomeActor], "first")
+   first ! "stop"
+   #+END_SRC
+*** Monad
+   #+ATTR_REVEAL: :frag appear
+   #+BEGIN_SRC haskell
+
+   -- state :: (s -> (a, s)) -> m a
+
+   type GameState = (Bool, Int)
+
+   play :: Command -> State GameState GameState
+   play = do s0 <- get
+             return s1
+
+   runState (play command) initState
+   #+END_SRC
+*** Reference
+   #+ATTR_REVEAL: :frag appear
+   #+BEGIN_SRC haskell
+   main = do
+    result <- newEmptyMVar
+
+    forkIO (do
+        ...
+        putMVar result 42)
+   #+END_SRC
+* State in Clojure
+  "Clojure is a practical language that recognizes the occasional need to maintain a persistent reference to a changing value and provides 4 distinct mechanisms for doing so in a controlled manner." - clojure.org
+** Identity and State
+  a stable logical entity associated with a series of different values over time
+  a value is something that doesn’t change
+** Var
+  Vars provide a mechanism to refer to a mutable storage location that can be dynamically rebound (to a new storage location) on a per-thread basis.
+  #+ATTR_REVEAL: :frag appear
+  #+BEGIN_SRC clojure
+  (def ^:dynamic *v-per-thread* 10)
+
+  (binding [*v-per-thread* 20]
+    (println *v-per-thread*))
+  #+END_SRC
+** Atom
+  Atoms provide a way to manage shared, synchronous, independent state.
+  #+ATTR_REVEAL: :frag appear
+  #+BEGIN_SRC clojure
+  (def db (atom {})
+
+  (swap! db assoc :status :succeed)
+  #+END_SRC
+** Ref
+  Transactional references (Refs) ensure safe shared use of mutable storage locations via a software transactional memory (STM) system.
+  #+ATTR_REVEAL: :frag appear
+  #+BEGIN_SRC clojure
+  (def balance-a (ref 1000))
+  (def balance-b (ref 400))
+
+  (defn transit
+    [balance1 balance2 amount]
+    (dosync
+      (alter balance1 - amount)
+      (alter balance2 + amount)))
+  #+END_SRC
+** Agent
+  Agents provide independent, asynchronous change of individual locations.
+  #+ATTR_REVEAL: :frag appear
+  #+BEGIN_SRC clojure
+  (def count (agent 0))
+
+  (send count inc)
+  #+END_SRC
+** Misc
+  1. Validator
+  1. Reactive
+** Comparison
+  | Name  | Execution    | Coordination | Locations  | Retry |
+  |-------+--------------+--------------+------------+-------|
+  | Ref   | synchronous  | coordinated  | multiple   | false |
+  | Agent | asynchronous | independent  | individual | true  |
+  | Atom  | synchronous  | independent  | individual | true  |
+* Reference
+  [[https://clojure.org][clojure.org]]
